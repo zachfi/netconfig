@@ -15,9 +15,6 @@
 package cmd
 
 import (
-	"fmt"
-	"os"
-
 	homedir "github.com/mitchellh/go-homedir"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -41,8 +38,7 @@ var rootCmd = &cobra.Command{
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		log.Fatal(err)
 	}
 }
 
@@ -70,8 +66,7 @@ func initConfig() {
 		// Find home directory.
 		home, err := homedir.Dir()
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			log.Fatal(err)
 		}
 
 		// Search config in home directory with name ".netconfig" (without extension).
@@ -83,7 +78,7 @@ func initConfig() {
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
+		log.Debug("Using config file:", viper.ConfigFileUsed())
 	}
 }
 
@@ -112,9 +107,9 @@ func netconfig(cmd *cobra.Command, args []string) {
 	defer l.Close()
 
 	hosts := z.GetNetworkHosts(l, z.Config.Ldap.BaseDN)
-	log.Debugf("Hosts: %+v", hosts)
 
 	for _, host := range hosts {
+		log.Debugf("Opertaing on  host: %+v", host.HostName)
 		z.ConfigureNetworkHost(&host, commit)
 	}
 

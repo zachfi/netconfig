@@ -1,3 +1,10 @@
+
+[[constraint]]
+  # Required: the root import path of the project being constrained.
+  name = "github.com/xaque208/znet"
+  #version = "1.0.0"
+  branch = "master"
+
 [prune]
   go-tests = true
   unused-packages = true

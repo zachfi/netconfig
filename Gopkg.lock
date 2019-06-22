@@ -247,13 +247,13 @@
   revision = "bd17b90bf357ec30d7cd5b62ba281249ba598b04"
 
 [[projects]]
+  branch = "master"
   name = "github.com/xaque208/znet"
   packages = [
     "arpwatch",
     "znet"
   ]
-  revision = "52a21df610b3d94b1a199db4c87ad7a09e650c77"
-  version = "v0.1.0"
+  revision = "545e9b34dd4af6bf3c80be870e6d3bbc70d4ab42"
 
 [[projects]]
   branch = "master"
@@ -328,6 +328,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "1314b0db3f95d71bb0a2b90975221de34fbe91d52d2e65c0c6231083ea9cdb11"
+  inputs-digest = "ec58a4c000e944a50b77f1d7be3be27007f39f6450100b9f81c90cf6cc749d1b"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -18,12 +18,14 @@ type HostData struct {
 	RouterAdvertisements  []RouterAdvertisement `yaml:"router_advertisements"`
 	BGP                   BGP                   `yaml:"bgp"`
 	Security              Security              `yaml:"security"`
+	VLANs                 []VLAN                `yaml:"vlans"`
 }
 
 type Security struct {
 	Zones          []SecurityZone         `yaml:"zones"`
 	Policies       []SecurityPolicies     `yaml:"policies"`
 	SimplePolicies []SimpleSecurityPolicy `yaml:"simple_policies"`
+	NATRuleSets    []SecurityNATRuleSet   `yaml:"nat_rulesets"`
 }
 
 type SimpleSecurityPolicy struct {
@@ -55,6 +57,23 @@ type SecurityPolicy struct {
 type SecurityZoneInterface struct {
 	Name           string   `yaml:"name"`
 	SystemServices []string `yaml:"system_services"`
+}
+
+type SecurityNATRuleSet struct {
+	Name  string            `yaml:"name"`
+	From  string            `yaml:"from_zone"`
+	To    string            `yaml:"to_zone"`
+	Rules []SecurityNATRule `yaml:"rules"`
+}
+
+type SecurityNATRule struct {
+	Name  string               `yaml:"name"`
+	Match SecurityNATRuleMatch `yaml:"match"`
+}
+
+type SecurityNATRuleMatch struct {
+	SourceAddressNames []string `yaml:"source_address_names"`
+	SourceAddress      []string `yaml:"source_address"`
 }
 
 type BGP struct {
@@ -104,6 +123,14 @@ type EthernetInterface struct {
 }
 
 type EthernetSwitching struct {
-	Mode  string   `yaml:"mode"`
-	VLANs []string `yaml:"vlans"`
+	Mode         string   `yaml:"mode"`
+	StormControl string   `yaml:"storm_control"`
+	VLANs        []string `yaml:"vlans"`
+}
+
+type VLAN struct {
+	Name        string `yaml:"name"`
+	ID          int    `yaml:"id"`
+	Description string `yaml:"description"`
+	L3Interface string `yaml:"l3_interface"`
 }
