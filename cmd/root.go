@@ -16,6 +16,7 @@ package cmd
 
 import (
 	homedir "github.com/mitchellh/go-homedir"
+	"github.com/scottdware/go-junos"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -52,9 +53,8 @@ func init() {
 	if verbose {
 		log.SetLevel(log.DebugLevel)
 	} else {
-		log.SetLevel(log.WarnLevel)
+		log.SetLevel(log.InfoLevel)
 	}
-
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -106,11 +106,30 @@ func netconfig(cmd *cobra.Command, args []string) {
 	}
 	defer l.Close()
 
-	hosts := z.GetNetworkHosts(l, z.Config.Ldap.BaseDN)
+	hosts, err := z.GetNetworkHosts(l, z.Config.Ldap.BaseDN)
+	if err != nil {
+		log.Error(err)
+	}
+
+	if len(hosts) == 0 {
+		log.Fatalf("No hosts.")
+	}
+
+	auth := &junos.AuthMethod{
+		Username:   viper.GetString("junos.username"),
+		PrivateKey: viper.GetString("junos.keyfile"),
+	}
 
 	for _, host := range hosts {
-		log.Debugf("Opertaing on  host: %+v", host.HostName)
-		z.ConfigureNetworkHost(&host, commit)
+
+		if host.Platform == "junos" {
+			log.Debugf("Configuring network host: %+v", host.HostName)
+			err = z.ConfigureNetworkHost(&host, commit, auth)
+			if err != nil {
+				log.Error(err)
+			}
+		}
+
 	}
 
 }
