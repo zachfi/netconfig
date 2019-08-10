@@ -92,21 +92,20 @@ func netconfig(cmd *cobra.Command, args []string) {
 	viper.SetDefault("netconfig.configdir", "etc/")
 	viper.AutomaticEnv()
 
-	z := znet.Znet{}
-	z.LoadConfig(cfgFile)
+	z := znet.NewZnet(cfgFile)
 
 	configDir := viper.GetString("netconfig.configdir")
 	z.ConfigDir = configDir
 
 	z.LoadData(configDir)
 
-	l, err := z.NewLDAPClient(z.Config.Ldap)
+	l, err := z.NewLDAPClient(z.Config.LDAP)
 	if err != nil {
 		log.Error(err)
 	}
 	defer l.Close()
 
-	hosts, err := z.GetNetworkHosts(l, z.Config.Ldap.BaseDN)
+	hosts, err := z.GetNetworkHosts(l, z.Config.LDAP.BaseDN)
 	if err != nil {
 		log.Error(err)
 	}
@@ -129,7 +128,9 @@ func netconfig(cmd *cobra.Command, args []string) {
 				log.Error(err)
 			}
 		}
-
 	}
+
+	// n := NewNetConfig(configFile)
+	// n.ConfigureNetworkHosts(filter)
 
 }
