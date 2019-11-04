@@ -327,7 +327,7 @@
   branch = "master"
   name = "github.com/xaque208/znet"
   packages = ["znet"]
-  revision = "978ad0dfc7062d23fbea1066c9aa3e8e078090af"
+  revision = "a4c878a51824ac928bd6c96a3c9f6f67a1242944"
 
 [[projects]]
   branch = "master"
