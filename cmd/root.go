@@ -15,6 +15,8 @@
 package cmd
 
 import (
+	"sync"
+
 	homedir "github.com/mitchellh/go-homedir"
 	"github.com/scottdware/go-junos"
 	log "github.com/sirupsen/logrus"
@@ -26,6 +28,8 @@ import (
 var cfgFile string
 var commit bool
 var verbose bool
+var show bool
+var limit int
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -49,6 +53,8 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.netconfig.yaml)")
 	rootCmd.PersistentFlags().BoolVarP(&commit, "commit", "", false, "Commit the configuration")
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Increase verbosity")
+	rootCmd.PersistentFlags().BoolVarP(&show, "show", "s", false, "Show the rendered templates")
+	rootCmd.PersistentFlags().IntVarP(&limit, "limit", "l", 0, "Limit the number of devices to configure")
 
 	if verbose {
 		log.SetLevel(log.DebugLevel)
@@ -92,20 +98,23 @@ func netconfig(cmd *cobra.Command, args []string) {
 	viper.SetDefault("netconfig.configdir", "etc/")
 	viper.AutomaticEnv()
 
-	z := znet.NewZnet(cfgFile)
+	z, err := znet.NewZnet(cfgFile)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	configDir := viper.GetString("netconfig.configdir")
 	z.ConfigDir = configDir
 
 	z.LoadData(configDir)
 
-	l, err := z.NewLDAPClient(z.Config.LDAP)
+	l, err := znet.NewLDAPClient(z.Config.LDAP)
 	if err != nil {
 		log.Error(err)
 	}
 	defer l.Close()
 
-	hosts, err := z.GetNetworkHosts(l, z.Config.LDAP.BaseDN)
+	hosts, err := z.NetworkHosts()
 	if err != nil {
 		log.Error(err)
 	}
@@ -119,16 +128,31 @@ func netconfig(cmd *cobra.Command, args []string) {
 		PrivateKey: viper.GetString("junos.keyfile"),
 	}
 
-	for _, host := range hosts {
+	wg := sync.WaitGroup{}
 
-		if host.Platform == "junos" {
-			log.Debugf("Configuring network host: %+v", host.HostName)
-			err = z.ConfigureNetworkHost(&host, commit, auth)
-			if err != nil {
-				log.Error(err)
+	for _, host := range hosts {
+		// if i < limit && limit > 0 {
+
+		wg.Add(1)
+		go func(h znet.NetworkHost) {
+
+			if h.Platform == "junos" {
+				log.Debugf("Configuring network host: %+v", h.HostName)
+
+				err = z.ConfigureNetworkHost(&h, commit, auth, show)
+				if err != nil {
+					log.Error(err)
+				}
+
 			}
-		}
+
+			wg.Done()
+		}(host)
+
+		// }
 	}
+
+	wg.Wait()
 
 	// n := NewNetConfig(configFile)
 	// n.ConfigureNetworkHosts(filter)

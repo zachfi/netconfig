@@ -48,10 +48,11 @@ type HTTPConfig struct {
 }
 
 type LDAPConfig struct {
-	BaseDN string
-	BindDN string
-	BindPW string
-	Host   string
+	BaseDN    string `yaml:"basedn"`
+	BindDN    string `yaml:"binddn"`
+	BindPW    string `yaml:"bindpw"`
+	Host      string `yaml:"host"`
+	UnknownDN string `yaml:"unknowndn"`
 }
 
 type VaultConfig struct {
