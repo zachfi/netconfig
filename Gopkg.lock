@@ -56,7 +56,13 @@
 
 [[projects]]
   name = "github.com/golang/protobuf"
-  packages = ["proto"]
+  packages = [
+    "proto",
+    "ptypes",
+    "ptypes/any",
+    "ptypes/duration",
+    "ptypes/timestamp"
+  ]
   revision = "b5d812f8a3706043e23a9cd5babf2e5423744d30"
   version = "v1.3.1"
 
@@ -236,8 +242,8 @@
     "log",
     "model"
   ]
-  revision = "31bed53e4047fd6c510e43a941f90cb31be0972a"
-  version = "v0.6.0"
+  revision = "287d3e634a1e550c9e463dd7e5a75a422c614505"
+  version = "v0.7.0"
 
 [[projects]]
   name = "github.com/prometheus/procfs"
@@ -315,7 +321,7 @@
   branch = "master"
   name = "github.com/xaque208/rftoy"
   packages = ["rftoy"]
-  revision = "68da7ed29fcb6fde19745d64a8bfa5d539ed8a69"
+  revision = "4727b87c34619533519abb4260afd477833e265b"
 
 [[projects]]
   branch = "master"
@@ -326,8 +332,11 @@
 [[projects]]
   branch = "master"
   name = "github.com/xaque208/znet"
-  packages = ["znet"]
-  revision = "a4c878a51824ac928bd6c96a3c9f6f67a1242944"
+  packages = [
+    "rpc",
+    "znet"
+  ]
+  revision = "5429b9217f65efa3d817c372d8a7fff06e745831"
 
 [[projects]]
   branch = "master"
@@ -358,7 +367,9 @@
     "http/httpguts",
     "http2",
     "http2/hpack",
-    "idna"
+    "idna",
+    "internal/timeseries",
+    "trace"
   ]
   revision = "ca1201d0de80cfde86cb01aea620983605dfe99b"
 
@@ -402,6 +413,54 @@
   name = "golang.org/x/time"
   packages = ["rate"]
   revision = "9d24e82272b4f38b78bc8cff74fa936d31ccd8ef"
+
+[[projects]]
+  branch = "master"
+  name = "google.golang.org/genproto"
+  packages = ["googleapis/rpc/status"]
+  revision = "0243a4be9c8f1264d238fdc2895620b4d9baf9e1"
+
+[[projects]]
+  name = "google.golang.org/grpc"
+  packages = [
+    ".",
+    "backoff",
+    "balancer",
+    "balancer/base",
+    "balancer/roundrobin",
+    "binarylog/grpc_binarylog_v1",
+    "codes",
+    "connectivity",
+    "credentials",
+    "credentials/internal",
+    "encoding",
+    "encoding/proto",
+    "grpclog",
+    "internal",
+    "internal/backoff",
+    "internal/balancerload",
+    "internal/binarylog",
+    "internal/buffer",
+    "internal/channelz",
+    "internal/envconfig",
+    "internal/grpcrand",
+    "internal/grpcsync",
+    "internal/resolver/dns",
+    "internal/resolver/passthrough",
+    "internal/syscall",
+    "internal/transport",
+    "keepalive",
+    "metadata",
+    "naming",
+    "peer",
+    "resolver",
+    "serviceconfig",
+    "stats",
+    "status",
+    "tap"
+  ]
+  revision = "1a3960e4bd028ac0cec0a2afd27d7d8e67c11514"
+  version = "v1.25.1"
 
 [[projects]]
   name = "gopkg.in/alecthomas/kingpin.v2"

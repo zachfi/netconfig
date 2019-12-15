@@ -114,7 +114,7 @@ func netconfig(cmd *cobra.Command, args []string) {
 	}
 	defer l.Close()
 
-	hosts, err := z.NetworkHosts()
+	hosts, err := z.Inventory.NetworkHosts()
 	if err != nil {
 		log.Error(err)
 	}

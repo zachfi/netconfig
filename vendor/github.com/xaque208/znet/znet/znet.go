@@ -21,32 +21,55 @@ type Znet struct {
 	Data        Data
 	Environment map[string]string
 	listener    *Listener
-	ldapClient  *ldap.Conn
+	// TODO deprecate ldapclient use at Znet, move to Inventory
+	ldapClient *ldap.Conn
+	Inventory  *Inventory
+	Lights     *Lights
 }
 
 // NewZnet creates and returns a new Znet object.
 func NewZnet(file string) (*Znet, error) {
-	z := &Znet{}
 
 	config, err := loadConfig(file)
 	if err != nil {
-		return &Znet{}, err
+		return &Znet{}, fmt.Errorf("failed to load config file %s: %s", file, err)
 	}
 
-	z.Config = config
-
+	var ldapClient *ldap.Conn
 	if config.LDAP.BindDN != "" && config.LDAP.BindPW != "" {
 		ldapConn, err := NewLDAPClient(config.LDAP)
 		if err != nil {
 			return &Znet{}, fmt.Errorf("Failed LDAP connection: %s", err)
 		}
 
-		z.ldapClient = ldapConn
+		ldapClient = ldapConn
+	} else {
+		log.Warn("Not enough configuration data for LDAP client")
 	}
 
-	err = z.LoadEnvironment()
+	e, err := GetEnvironmentConfig(config.Environments, "default")
 	if err != nil {
-		return &Znet{}, fmt.Errorf("Failed to load environment: %s", err)
+		log.Error(err)
+	}
+
+	environment, err := LoadEnvironment(config.Vault, e)
+	if err != nil {
+		log.Errorf("Failed to load environment: %s", err)
+	}
+
+	inventory := &Inventory{
+		config:     config.LDAP,
+		ldapClient: ldapClient,
+	}
+
+	lights := NewLights(config.Lights)
+
+	z := &Znet{
+		Config:      config,
+		ldapClient:  ldapClient,
+		Environment: environment,
+		Inventory:   inventory,
+		Lights:      lights,
 	}
 
 	return z, nil
@@ -69,7 +92,10 @@ func loadConfig(file string) (Config, error) {
 func (z *Znet) LoadData(configDir string) {
 	log.Debugf("Loading data from: %s", configDir)
 	dataConfig := Data{}
-	loadYamlFile(fmt.Sprintf("%s/%s", configDir, "data.yaml"), &dataConfig)
+	err := loadYamlFile(fmt.Sprintf("%s/%s", configDir, "data.yaml"), &dataConfig)
+	if err != nil {
+		log.Errorf("failed to load yaml file %s: %s", configDir, err)
+	}
 
 	z.Data = dataConfig
 }
@@ -177,7 +203,10 @@ func (z *Znet) DataForDevice(host NetworkHost) HostData {
 	for _, f := range z.HierarchyForDevice(host) {
 
 		fileHostData := HostData{}
-		loadYamlFile(f, &fileHostData)
+		err := loadYamlFile(f, &fileHostData)
+		if err != nil {
+			log.Error(err)
+		}
 
 		if err := mergo.Merge(&hostData, fileHostData, mergo.WithOverride); err != nil {
 			log.Error(err)
@@ -239,16 +268,19 @@ func (z *Znet) RenderHostTemplateFile(host NetworkHost, path string) string {
 
 	b, err := ioutil.ReadFile(path)
 	if err != nil {
-		log.Error(err)
+		log.Errorf("failed read path: %s", err)
 	}
 
 	str := string(b)
 	tmpl, err := template.New("test").Parse(str)
 	if err != nil {
-		log.Error(err)
+		log.Errorf("failed to parse template %s: %s", path, err)
 	}
 
 	var buf bytes.Buffer
+
+	// Attach the znet Environment to the host
+	host.Environment = z.Environment
 
 	err = tmpl.Execute(&buf, host)
 	if err != nil {
@@ -262,6 +294,7 @@ func (z *Znet) RenderHostTemplateFile(host NetworkHost, path string) string {
 func (z *Znet) Close() error {
 
 	z.ldapClient.Close()
+	z.Inventory.ldapClient.Close()
 
 	return nil
 }
