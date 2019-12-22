@@ -336,7 +336,7 @@
     "rpc",
     "znet"
   ]
-  revision = "5429b9217f65efa3d817c372d8a7fff06e745831"
+  revision = "24ffd3351c114f01dd5c7ff2a52d38ac4a2c3a79"
 
 [[projects]]
   branch = "master"
