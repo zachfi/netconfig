@@ -1,0 +1,10 @@
+---
+on_tag:
+  - 'kitty make release'
+
+on_commit:
+  - 'kitty make build'
+
+branches: [ 'origin/master' ]
+
+
