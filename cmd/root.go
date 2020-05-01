@@ -108,12 +108,6 @@ func netconfig(cmd *cobra.Command, args []string) {
 
 	z.LoadData(configDir)
 
-	l, err := znet.NewLDAPClient(z.Config.LDAP)
-	if err != nil {
-		log.Error(err)
-	}
-	defer l.Close()
-
 	hosts, err := z.Inventory.NetworkHosts()
 	if err != nil {
 		log.Error(err)
@@ -131,8 +125,6 @@ func netconfig(cmd *cobra.Command, args []string) {
 	wg := sync.WaitGroup{}
 
 	for _, host := range hosts {
-		// if i < limit && limit > 0 {
-
 		wg.Add(1)
 		go func(h znet.NetworkHost) {
 
@@ -143,18 +135,11 @@ func netconfig(cmd *cobra.Command, args []string) {
 				if err != nil {
 					log.Error(err)
 				}
-
 			}
 
 			wg.Done()
 		}(host)
-
-		// }
 	}
 
 	wg.Wait()
-
-	// n := NewNetConfig(configFile)
-	// n.ConfigureNetworkHosts(filter)
-
 }
