@@ -78,11 +78,7 @@ func main() {
 		_ = level.Error(logger).Log("msg", "failed to get new NetConfig", "err", err)
 	}
 
-	var commit = false
-	var confirm = 5
-	var diff = false
-
-	err = nc.ConfigureNetwork(commit, confirm, diff)
+	err = nc.ConfigureNetwork()
 	if err != nil {
 		_ = level.Error(logger).Log("msg", "failed to configure netork", "err", err)
 	}
@@ -91,22 +87,12 @@ func main() {
 
 func loadConfig() (*netconfig.Config, error) {
 	const (
-		configFileOption    = "config.file"
-		junosUsernameOption = "junos.username"
-		junosKeyfileOption  = "junos.keyfile"
-		dataDirOption       = "data.directory"
-		diffOption          = "diff"
-		commitOption        = "commit"
-		confirmOption       = "commit.confirm"
+		configFileOption = "config.file"
+		dataDirOption    = "data.directory"
 	)
 
 	var (
-		configFile    string
-		junosUsername string
-		junosKeyfile  string
-		diff          bool
-		commit        bool
-		confirm       int
+		configFile string
 	)
 
 	args := os.Args[1:]
@@ -117,12 +103,6 @@ func loadConfig() (*netconfig.Config, error) {
 	fs.SetOutput(io.Discard)
 
 	fs.StringVar(&configFile, configFileOption, "", "")
-	fs.StringVar(&junosUsername, junosUsernameOption, "", "")
-	fs.StringVar(&junosKeyfile, junosKeyfileOption, "", "")
-
-	fs.BoolVar(&diff, diffOption, true, "")
-	fs.BoolVar(&commit, commitOption, false, "")
-	fs.IntVar(&confirm, confirmOption, 10, "")
 
 	// Try to find -config.file & -config.expand-env flags. As Parsing stops on the first error, eg. unknown flag,
 	// we simply try remaining parameters until we find config flag, or there are no params left.
@@ -133,7 +113,7 @@ func loadConfig() (*netconfig.Config, error) {
 	}
 
 	// load config defaults and register flags
-	// config.RegisterFlagsAndApplyDefaults("", flag.CommandLine)
+	config.RegisterFlagsAndApplyDefaults("", flag.CommandLine)
 
 	// overlay with config file if provided
 	if configFile != "" {
@@ -150,9 +130,9 @@ func loadConfig() (*netconfig.Config, error) {
 
 	// overlay with cli
 	flagext.IgnoredFlag(flag.CommandLine, configFileOption, "Configuration file to load")
-	flagext.IgnoredFlag(flag.CommandLine, confirmOption, "Commit confirmed minutes to wait before reverting")
-	flagext.IgnoredFlag(flag.CommandLine, commitOption, "Commit the diff")
-	flagext.IgnoredFlag(flag.CommandLine, diffOption, "Commit the diff")
+	// flagext.IgnoredFlag(flag.CommandLine, confirmOption, "Commit confirmed minutes to wait before reverting")
+	// flagext.IgnoredFlag(flag.CommandLine, commitOption, "Commit the diff")
+	// flagext.IgnoredFlag(flag.CommandLine, diffOption, "Show the diff")
 	flag.Parse()
 
 	return config, nil

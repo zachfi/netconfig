@@ -1,4 +1,4 @@
-package netconfig
+package data
 
 // Data is the structure of the data directory.
 type Data struct {
@@ -30,7 +30,13 @@ type Security struct {
 	Zones          []SecurityZone         `yaml:"zones"`
 	Policies       []SecurityPolicies     `yaml:"policies"`
 	SimplePolicies []SimpleSecurityPolicy `yaml:"simple_policies"`
-	NATRuleSets    []SecurityNATRuleSet   `yaml:"nat_rulesets"`
+	NAT            SecurityNAT            `yaml:"nat"`
+	AddressBook    []GlobalAddress        `yaml:"address_book"`
+}
+
+type GlobalAddress struct {
+	Address string `yaml:"address"`
+	Name    string `yaml:"name"`
 }
 
 // SimpleSecurityPolicy is a simple security policy for an SRX device.
@@ -68,26 +74,6 @@ type SecurityZoneInterface struct {
 	Name           string   `yaml:"name"`
 	SystemServices []string `yaml:"system_services"`
 	Protocols      []string `yaml:"protocols"`
-}
-
-// SecurityNATRuleSet is a set of NAT rules.
-type SecurityNATRuleSet struct {
-	Name  string            `yaml:"name"`
-	From  string            `yaml:"from_zone"`
-	To    string            `yaml:"to_zone"`
-	Rules []SecurityNATRule `yaml:"rules"`
-}
-
-// SecurityNATRule is a single NAT rule.
-type SecurityNATRule struct {
-	Name  string               `yaml:"name"`
-	Match SecurityNATRuleMatch `yaml:"match"`
-}
-
-// SecurityNATRuleMatch is a match condition for a NAT rule.
-type SecurityNATRuleMatch struct {
-	SourceAddressNames []string `yaml:"source_address_names"`
-	SourceAddress      []string `yaml:"source_address"`
 }
 
 // BGP is the BGP stanza on a Juniper router.

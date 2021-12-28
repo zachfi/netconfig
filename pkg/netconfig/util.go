@@ -6,17 +6,33 @@ import (
 	"text/template"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/xaque208/netconfig/pkg/netconfig/data"
 	yaml "gopkg.in/yaml.v2"
 )
 
-// loadYamlFile unmarshals a YAML file into the received interface{} or returns an error.
-func loadYamlFile(filename string, d interface{}) error {
+// loadHostDataFile unmarshals a YAML file into the received interface{} or returns an error.
+func loadHostDataFile(filename string, d *data.HostData) error {
 	yamlFile, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return err
 	}
 
-	err = yaml.Unmarshal(yamlFile, d)
+	err = yaml.UnmarshalStrict(yamlFile, d)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// loadDataConfig unmarshals a YAML file into the received interface{} or returns an error.
+func loadDataConfig(filename string, d *data.Data) error {
+	yamlFile, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return err
+	}
+
+	err = yaml.UnmarshalStrict(yamlFile, d)
 	if err != nil {
 		return err
 	}
