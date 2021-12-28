@@ -95,13 +95,18 @@ func loadConfig() (*netconfig.Config, error) {
 		junosUsernameOption = "junos.username"
 		junosKeyfileOption  = "junos.keyfile"
 		dataDirOption       = "data.directory"
-		invHosts            = "inventory.hosts"
+		diffOption          = "diff"
+		commitOption        = "commit"
+		confirmOption       = "commit.confirm"
 	)
 
 	var (
 		configFile    string
 		junosUsername string
 		junosKeyfile  string
+		diff          bool
+		commit        bool
+		confirm       int
 	)
 
 	args := os.Args[1:]
@@ -114,6 +119,10 @@ func loadConfig() (*netconfig.Config, error) {
 	fs.StringVar(&configFile, configFileOption, "", "")
 	fs.StringVar(&junosUsername, junosUsernameOption, "", "")
 	fs.StringVar(&junosKeyfile, junosKeyfileOption, "", "")
+
+	fs.BoolVar(&diff, diffOption, true, "")
+	fs.BoolVar(&commit, commitOption, false, "")
+	fs.IntVar(&confirm, confirmOption, 10, "")
 
 	// Try to find -config.file & -config.expand-env flags. As Parsing stops on the first error, eg. unknown flag,
 	// we simply try remaining parameters until we find config flag, or there are no params left.
@@ -141,6 +150,9 @@ func loadConfig() (*netconfig.Config, error) {
 
 	// overlay with cli
 	flagext.IgnoredFlag(flag.CommandLine, configFileOption, "Configuration file to load")
+	flagext.IgnoredFlag(flag.CommandLine, confirmOption, "Commit confirmed minutes to wait before reverting")
+	flagext.IgnoredFlag(flag.CommandLine, commitOption, "Commit the diff")
+	flagext.IgnoredFlag(flag.CommandLine, diffOption, "Commit the diff")
 	flag.Parse()
 
 	return config, nil

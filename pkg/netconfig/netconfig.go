@@ -33,11 +33,11 @@ type NetConfig struct {
 	logger log.Logger
 	cfg    *Config
 
-	Data      Data
-	Hosts     []Host
-	ConfigDir string
 	junosAuth *junos.AuthMethod
 	ldap      *inventory.LDAPInventory
+
+	Data  Data
+	Hosts []Host
 }
 
 // NewNetConfig is used to build a new *NetConfig.
@@ -141,6 +141,8 @@ func (n *NetConfig) ConfigureNetworkHost(host Host, commit bool, confirm int, di
 
 	templates := n.templatesForDevice(host)
 
+	_ = level.Debug(n.logger).Log("msg", "templates for device", "count", len(templates))
+
 	var renderedTemplates []string
 	for _, t := range templates {
 		result := n.renderHostTemplateFile(host, t)
@@ -174,7 +176,8 @@ func (n *NetConfig) ConfigureNetworkHost(host Host, commit bool, confirm int, di
 	}
 
 	if len(diffResult) > 1 {
-		_ = level.Info(n.logger).Log("msg", "configuration changes", "host", host.HostName, "diff", diffResult)
+		_ = level.Info(n.logger).Log("msg", "configuration changes", "host", host.HostName)
+		fmt.Printf("%+v", diffResult)
 
 		if commit {
 			if confirm > 0 {
@@ -230,7 +233,7 @@ func (n *NetConfig) hierarchyForDevice(host Host) []string {
 	paths := templateStringsForDevice(host, n.Data.Hierarchy)
 
 	for _, p := range paths {
-		templateAbs := fmt.Sprintf("%s/%s/%s", n.ConfigDir, n.Data.DataDir, p)
+		templateAbs := fmt.Sprintf("%s/%s", n.cfg.Data.Directory, p)
 		if _, err := os.Stat(templateAbs); err == nil {
 			files = append(files, templateAbs)
 		}
@@ -243,12 +246,12 @@ func (n *NetConfig) hierarchyForDevice(host Host) []string {
 func (n *NetConfig) templatesForDevice(host Host) []string {
 	var files []string
 
-	_ = level.Debug(n.logger).Log("msg", "loading templates for host", "host", host)
+	_ = level.Debug(n.logger).Log("msg", "loading templates for host", "host", host.HostName)
 
 	paths := templateStringsForDevice(host, n.Data.TemplatePaths)
 
 	for _, p := range paths {
-		templateAbs := fmt.Sprintf("%s/%s/%s", n.ConfigDir, n.Data.TemplateDir, p)
+		templateAbs := fmt.Sprintf("%s/%s/%s", n.cfg.Data.Directory, n.Data.TemplateDir, p)
 		if _, err := os.Stat(templateAbs); err == nil {
 			globPattern := fmt.Sprintf("%s/*.tmpl", templateAbs)
 			foundFiles, globErr := filepath.Glob(globPattern)
