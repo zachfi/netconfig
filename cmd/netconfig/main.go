@@ -28,8 +28,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/prometheus/common/version"
 
-	"github.com/scottdware/go-junos"
-
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/propagation"
@@ -75,15 +73,14 @@ func main() {
 	}
 	defer shutdownTracer()
 
-	auth := &junos.AuthMethod{
-		Username:   junosUsername,
-		PrivateKey: junosKeyfile,
-	}
-
-	nc, err := netconfig.NewNetConfig(configDir, hosts, auth, z.Environment)
+	nc, err := netconfig.NewNetConfig(*cfg, logger)
 	if err != nil {
 		_ = level.Error(logger).Log("msg", "failed to get new NetConfig", "err", err)
 	}
+
+	var commit = false
+	var confirm = 5
+	var diff = false
 
 	err = nc.ConfigureNetwork(commit, confirm, diff)
 	if err != nil {
@@ -97,7 +94,8 @@ func loadConfig() (*netconfig.Config, error) {
 		configFileOption    = "config.file"
 		junosUsernameOption = "junos.username"
 		junosKeyfileOption  = "junos.keyfile"
-		dataDir             = "data.directory"
+		dataDirOption       = "data.directory"
+		invHosts            = "inventory.hosts"
 	)
 
 	var (

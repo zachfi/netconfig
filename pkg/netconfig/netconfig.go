@@ -2,6 +2,7 @@ package netconfig
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -10,9 +11,11 @@ import (
 	"sync"
 	"text/template"
 
+	"github.com/go-kit/log"
+	"github.com/go-kit/log/level"
 	"github.com/imdario/mergo"
 	"github.com/scottdware/go-junos"
-	log "github.com/sirupsen/logrus"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/xaque208/znet/modules/inventory"
 )
@@ -27,63 +30,68 @@ type Host struct {
 
 // NetConfig is enough data to configure some network hosts.
 type NetConfig struct {
+	logger log.Logger
+	cfg    *Config
+
 	Data      Data
 	Hosts     []Host
 	ConfigDir string
 	junosAuth *junos.AuthMethod
+	ldap      *inventory.LDAPInventory
 }
 
 // NewNetConfig is used to build a new *NetConfig.
-func NewNetConfig(configDir string, hosts []*inventory.NetworkHost, auth *junos.AuthMethod, env map[string]string) (*NetConfig, error) {
-	data, err := loadData(configDir)
+func NewNetConfig(cfg Config, logger log.Logger) (*NetConfig, error) {
+	logger = log.With(logger, "module", "timer")
+	n := &NetConfig{
+		logger: logger,
+		cfg:    &cfg,
+		junosAuth: &junos.AuthMethod{
+			Username:   cfg.Junos.Username,
+			PrivateKey: cfg.Junos.PrivateKey,
+		},
+	}
+
+	data, err := loadData(cfg.Data.Directory, logger)
+	if err != nil {
+		return nil, err
+	}
+	n.Data = data
+
+	inv, err := inventory.NewLDAPInventory(cfg.Inventory, logger)
+	if err != nil {
+		return nil, err
+	}
+	n.ldap = inv
+
+	hosts, err := inv.ListNetworkHosts(context.TODO())
 	if err != nil {
 		return nil, err
 	}
 
-	if len(hosts) == 0 {
-		return nil, fmt.Errorf("unable to configure zero hosts")
-	}
+	_ = level.Debug(logger).Log("msg", "netconfig", "host_count", len(hosts))
 
-	if auth == nil {
-		return nil, fmt.Errorf("unable to auth with nil")
-	}
-
-	nc := &NetConfig{
-		Data:      data,
-		ConfigDir: configDir,
-		junosAuth: auth,
-	}
-
-	log.WithFields(log.Fields{
-		"host_count": len(hosts),
-	}).Debug("netconfig")
-
-	for _, h := range hosts {
-		if h == nil {
-			log.Error("unable to configure nil host")
-			continue
-		}
-
-		netHost := h
+	for i, h := range hosts {
+		netHost := proto.Clone(&hosts[i])
 
 		host := Host{
-			NetworkHost: netHost,
+			NetworkHost: netHost.(*inventory.NetworkHost),
 			HostName:    strings.Join([]string{h.Name, h.Domain}, "."),
-			Environment: env,
+			// Environment: env,
 		}
 
-		d := nc.dataForHost(host)
+		d := n.dataForHost(host)
 		host.Data = d
 
-		nc.Hosts = append(nc.Hosts, host)
+		n.Hosts = append(n.Hosts, host)
 	}
 
-	return nc, nil
+	return n, nil
 }
 
 // LoadData receives a configuration directory from which to load the data for Znet.
-func loadData(configDir string) (Data, error) {
-	log.Debugf("loading data from: %s", configDir)
+func loadData(configDir string, logger log.Logger) (Data, error) {
+	_ = level.Debug(logger).Log("msg", "loading data", "path", configDir)
 	dataConfig := Data{}
 	err := loadYamlFile(fmt.Sprintf("%s/%s", configDir, "data.yaml"), &dataConfig)
 	if err != nil {
@@ -104,11 +112,11 @@ func (n *NetConfig) ConfigureNetwork(commit bool, confirm int, diff bool) error 
 		wg.Add(1)
 		go func(h Host) {
 			if h.NetworkHost.Platform == "junos" {
-				log.Debugf("configuring network host: %+v", h.HostName)
+				_ = level.Debug(n.logger).Log("msg", "configuring", "host", h.HostName)
 
 				err := n.ConfigureNetworkHost(h, commit, confirm, diff)
 				if err != nil {
-					log.Error(err)
+					_ = level.Error(n.logger).Log("msg", "failed to configure", "host", h.HostName, "err", err)
 				}
 			}
 
@@ -124,8 +132,6 @@ func (n *NetConfig) ConfigureNetwork(commit bool, confirm int, diff bool) error 
 // network host.  The hosts about which to load the templates, are retrieved
 // from LDAP.
 func (n *NetConfig) ConfigureNetworkHost(host Host, commit bool, confirm int, diff bool) error {
-
-	// log.Debugf("Using auth: %+v", auth)
 	session, err := junos.NewSession(host.HostName, n.junosAuth)
 	if err != nil {
 		return err
@@ -134,17 +140,15 @@ func (n *NetConfig) ConfigureNetworkHost(host Host, commit bool, confirm int, di
 	defer session.Close()
 
 	templates := n.templatesForDevice(host)
-	// log.Debugf("Templates for host %s: %+v", host.Name, templates)
 
 	var renderedTemplates []string
 	for _, t := range templates {
 		result := n.renderHostTemplateFile(host, t)
 		renderedTemplates = append(renderedTemplates, result)
-		// log.Infof("Result: %+v", result)
 	}
 
 	if diff {
-		log.Debugf("renderedTemplates: %+v", renderedTemplates)
+		_ = level.Debug(n.logger).Log("msg", "rendered templates", "output", renderedTemplates)
 	}
 
 	err = session.Lock()
@@ -155,7 +159,7 @@ func (n *NetConfig) ConfigureNetworkHost(host Host, commit bool, confirm int, di
 	defer func() {
 		err = session.Unlock()
 		if err != nil {
-			log.Errorf("error unlocking session on %s: %s", host.HostName, err)
+			_ = level.Error(n.logger).Log("msg", "error unlocking session", "host", host.HostName, "err", err)
 		}
 	}()
 
@@ -170,7 +174,7 @@ func (n *NetConfig) ConfigureNetworkHost(host Host, commit bool, confirm int, di
 	}
 
 	if len(diffResult) > 1 {
-		log.Infof("configuration changes for %s: %s", host.HostName, diffResult)
+		_ = level.Info(n.logger).Log("msg", "configuration changes", "host", host.HostName, "diff", diffResult)
 
 		if commit {
 			if confirm > 0 {
@@ -208,11 +212,11 @@ func (n *NetConfig) dataForHost(host Host) HostData {
 		fileHostData := HostData{}
 		err := loadYamlFile(f, &fileHostData)
 		if err != nil {
-			log.Error(err)
+			_ = level.Error(n.logger).Log("msg", "failed to load yaml file", "err", err)
 		}
 
 		if err := mergo.Merge(&hostData, fileHostData, mergo.WithOverride); err != nil {
-			log.Error(err)
+			_ = level.Error(n.logger).Log("msg", "failed to merge data", "err", err)
 		}
 	}
 
@@ -229,8 +233,6 @@ func (n *NetConfig) hierarchyForDevice(host Host) []string {
 		templateAbs := fmt.Sprintf("%s/%s/%s", n.ConfigDir, n.Data.DataDir, p)
 		if _, err := os.Stat(templateAbs); err == nil {
 			files = append(files, templateAbs)
-		} else if os.IsNotExist(err) {
-			log.Tracef("data file %s does not exist", templateAbs)
 		}
 	}
 
@@ -241,7 +243,7 @@ func (n *NetConfig) hierarchyForDevice(host Host) []string {
 func (n *NetConfig) templatesForDevice(host Host) []string {
 	var files []string
 
-	log.Tracef("loading templates for host: %+v", host)
+	_ = level.Debug(n.logger).Log("msg", "loading templates for host", "host", host)
 
 	paths := templateStringsForDevice(host, n.Data.TemplatePaths)
 
@@ -251,39 +253,34 @@ func (n *NetConfig) templatesForDevice(host Host) []string {
 			globPattern := fmt.Sprintf("%s/*.tmpl", templateAbs)
 			foundFiles, globErr := filepath.Glob(globPattern)
 			if globErr != nil {
-				log.Error(globErr)
+				_ = level.Error(n.logger).Log("msg", "failed to glob pattern", "err", globErr)
 			} else {
 				files = append(files, foundFiles...)
 			}
-		} else if os.IsNotExist(err) {
-			log.Warnf("template path %s does not exist", templateAbs)
 		}
 	}
-
-	log.Tracef("found %d templates for host: %s", len(files), host.HostName)
 
 	return files
 }
 
 // RenderHostTemplateFile renders a template file using a Host object.
 func (n *NetConfig) renderHostTemplateFile(host Host, path string) string {
-
 	b, err := ioutil.ReadFile(path)
 	if err != nil {
-		log.Errorf("failed read path: %s", err)
+		_ = level.Error(n.logger).Log("msg", "failed to read path", "err", err)
 	}
 
 	str := string(b)
 	tmpl, err := template.New("test").Parse(str)
 	if err != nil {
-		log.Errorf("failed to parse template %s: %s", path, err)
+		_ = level.Error(n.logger).Log("msg", "failed to parse template", "err", err)
 	}
 
 	var buf bytes.Buffer
 
 	err = tmpl.Execute(&buf, host)
 	if err != nil {
-		log.Error(err)
+		_ = level.Error(n.logger).Log("msg", "failed to execute template", "err", err)
 	}
 
 	return buf.String()
