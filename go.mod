@@ -22,5 +22,3 @@ require (
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/yaml.v2 v2.4.0
 )
-
-replace github.com/xaque208/znet => /home/zach/go/src/github.com/xaque208/znet
