@@ -29,7 +29,7 @@ type DataConfig struct {
 }
 
 func (c *Config) RegisterFlagsAndApplyDefaults(prefix string, f *flag.FlagSet) {
-	c.CommitConfirmed = 10
+	c.CommitConfirmed = 0
 	f.StringVar(&c.Junos.Username, "junos.username", "", "")
 	f.StringVar(&c.Junos.Keyfile, "junos.keyfile", "", "")
 	f.StringVar(&c.OtelEndpoint, "otel_endpoint", "", "otel endpoint, eg: tempo:4317")
