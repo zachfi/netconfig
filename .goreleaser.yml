@@ -1,0 +1,50 @@
+project_name: netconfig
+
+env:
+  - GO111MODULE=on
+
+before:
+  hooks:
+    - go mod download
+
+builds:
+  - id: netconfig
+    dir: cmd/netconfig
+    binary: netconfig
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - freebsd
+    goarch:
+      - amd64
+    ldflags:
+      - -s -w -X main.version={{.Version}} -X main.appName={{.Binary}}
+    ignore:
+      - goos: freebsd
+        goarch: arm
+
+archives:
+  - replacements:
+      freebsd: FreeBSD
+      linux: Linux
+      amd64: x86_64
+checksum:
+  name_template: "{{ .ProjectName }}_checksums.txt"
+snapshot:
+  name_template: "{{ .Tag }}-next"
+# Already using git-chglog
+changelog:
+  skip: true
+
+dockers:
+  - dockerfile: build/package/Dockerfile
+    image_templates:
+      - "xaque208/netconfig:{{ .Tag }}"
+      - "xaque208/netconfig:v{{ .Major }}.{{ .Minor }}"
+      - "xaque208/netconfig:latest"
+    build_flag_templates:
+      - "--pull"
+      - "--label=repository=https://github.com/xaque208/netconfig"
+release:
+  name_template: "{{.ProjectName}} v{{.Version}}"
