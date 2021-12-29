@@ -18,8 +18,9 @@ import (
 	"github.com/scottdware/go-junos"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/xaque208/netconfig/pkg/netconfig/data"
 	"github.com/xaque208/znet/modules/inventory"
+
+	"github.com/xaque208/netconfig/pkg/netconfig/data"
 )
 
 // Host is a single configurable host.

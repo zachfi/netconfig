@@ -6,8 +6,9 @@ import (
 	"text/template"
 
 	log "github.com/sirupsen/logrus"
-	"github.com/xaque208/netconfig/pkg/netconfig/data"
 	yaml "gopkg.in/yaml.v2"
+
+	"github.com/xaque208/netconfig/pkg/netconfig/data"
 )
 
 // loadHostDataFile unmarshals a YAML file into the received interface{} or returns an error.

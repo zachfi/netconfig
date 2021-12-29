@@ -38,8 +38,9 @@ import (
 	"google.golang.org/grpc"
 	"gopkg.in/yaml.v2"
 
-	"github.com/xaque208/netconfig/pkg/netconfig"
 	"github.com/xaque208/znet/pkg/util"
+
+	"github.com/xaque208/netconfig/pkg/netconfig"
 )
 
 const appName = "netconfig"
