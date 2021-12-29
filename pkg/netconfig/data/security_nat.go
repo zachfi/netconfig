@@ -8,6 +8,7 @@ type SecurityNAT struct {
 // SourceNAT is a set of NAT rules for SNAT.
 type SourceNAT struct {
 	RuleSets []SNATRuleSet `yaml:"rule_sets"`
+	Pools    []DNATPool    `yaml:"pools"`
 }
 
 // DestinationNAT is a set of NAT rules for DNAT.
@@ -41,6 +42,7 @@ type DNATRule struct {
 type SNATRule struct {
 	Name  string        `yaml:"name"`
 	Match SNATRuleMatch `yaml:"match"`
+	Then  SNATRuleThen  `yaml:"then"`
 }
 
 // SecurityNATPool is a single NAT rule.
@@ -50,10 +52,25 @@ type DNATPool struct {
 	Port    string `yaml:"port"`
 }
 
+// SNATPool is a single NAT rule.
+type SNATPool struct {
+	Name    string `yaml:"name"`
+	Address string `yaml:"address"`
+	Port    string `yaml:"port"`
+}
+
 // SNATRuleMatch is a match condition for a NAT rule.
 type SNATRuleMatch struct {
 	SourceAddressNames []string `yaml:"source_address_names"`
 	SourceAddress      []string `yaml:"source_address"`
+}
+
+// SNATRuleMatch is a match condition for a NAT rule.
+type SNATRuleThen struct {
+	SourceNAT struct {
+		Pool      string `yaml:"pool"`
+		Interface string `yaml:"interface"`
+	} `yaml:"source_nat"`
 }
 
 // DNATRuleMatch is a match condition for a NAT rule.
