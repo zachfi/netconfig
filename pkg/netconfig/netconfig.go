@@ -73,8 +73,8 @@ func New(cfg Config, logger log.Logger) (*NetConfig, error) {
 
 	_ = level.Debug(logger).Log("msg", "netconfig", "host_count", len(hosts))
 
-	for i, h := range hosts {
-		if h.Platform != "junos" {
+	for i := range hosts {
+		if hosts[i].Platform != "junos" {
 			continue
 		}
 
@@ -82,7 +82,7 @@ func New(cfg Config, logger log.Logger) (*NetConfig, error) {
 
 		host := Host{
 			NetworkHost: netHost.(*inventory.NetworkHost),
-			HostName:    strings.Join([]string{h.Name, h.Domain}, "."),
+			HostName:    strings.Join([]string{hosts[i].Name, hosts[i].Domain}, "."),
 			// Environment: env,
 		}
 
