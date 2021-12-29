@@ -42,8 +42,8 @@ type NetConfig struct {
 	Hosts []Host
 }
 
-// NewNetConfig is used to build a new *NetConfig.
-func NewNetConfig(cfg Config, logger log.Logger) (*NetConfig, error) {
+// New is used to build a new *NetConfig.
+func New(cfg Config, logger log.Logger) (*NetConfig, error) {
 	logger = log.With(logger, "module", "timer")
 	n := &NetConfig{
 		logger: logger,

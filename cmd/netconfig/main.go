@@ -73,7 +73,7 @@ func main() {
 	}
 	defer shutdownTracer()
 
-	nc, err := netconfig.NewNetConfig(*cfg, logger)
+	nc, err := netconfig.New(*cfg, logger)
 	if err != nil {
 		_ = level.Error(logger).Log("msg", "failed to get new NetConfig", "err", err)
 	}
