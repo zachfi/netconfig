@@ -63,6 +63,7 @@ type SNATPool struct {
 type SNATRuleMatch struct {
 	SourceAddressNames []string `yaml:"source_address_names"`
 	SourceAddress      []string `yaml:"source_address"`
+	SourcePort         []string `yaml:"source_port"`
 }
 
 // SNATRuleMatch is a match condition for a NAT rule.
