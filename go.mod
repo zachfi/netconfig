@@ -5,7 +5,7 @@ go 1.14
 require (
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/go-kit/log v0.2.0
-	github.com/grafana/dskit v0.0.0-20211229145507-fded26153e7b
+	github.com/grafana/dskit v0.0.0-20220105080720-01ce9286d7d5
 	github.com/imdario/mergo v0.3.12
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/pkg/errors v0.9.1
