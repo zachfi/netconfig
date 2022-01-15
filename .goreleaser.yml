@@ -38,7 +38,7 @@ changelog:
   skip: true
 
 dockers:
-  - dockerfile: build/package/Dockerfile
+  - dockerfile: Dockerfile
     image_templates:
       - "xaque208/netconfig:{{ .Tag }}"
       - "xaque208/netconfig:v{{ .Major }}.{{ .Minor }}"
