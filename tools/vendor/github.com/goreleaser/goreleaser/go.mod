@@ -3,30 +3,31 @@ module github.com/goreleaser/goreleaser
 go 1.17
 
 require (
-	code.gitea.io/sdk/gitea v0.15.0
+	code.gitea.io/sdk/gitea v0.15.1
 	github.com/DisgoOrg/disgohook v1.4.4
 	github.com/Masterminds/semver/v3 v3.1.1
 	github.com/alecthomas/jsonschema v0.0.0-20211209230136-e2b41affa5c1
 	github.com/apex/log v1.9.0
 	github.com/atc0005/go-teams-notify/v2 v2.6.0
 	github.com/caarlos0/ctrlc v1.0.0
-	github.com/caarlos0/env/v6 v6.8.0
+	github.com/caarlos0/env/v6 v6.9.1
+	github.com/caarlos0/go-reddit/v3 v3.0.1
 	github.com/caarlos0/go-shellwords v1.0.12
 	github.com/dghubble/go-twitter v0.0.0-20211115160449-93a8679adecb
-	github.com/dghubble/oauth1 v0.7.0
+	github.com/dghubble/oauth1 v0.7.1
 	github.com/fatih/color v1.13.0
 	github.com/go-telegram-bot-api/telegram-bot-api v4.6.4+incompatible
-	github.com/google/go-github/v39 v39.2.0
+	github.com/google/go-github/v41 v41.0.0
+	github.com/google/uuid v1.3.0
 	github.com/goreleaser/fileglob v1.2.0
 	github.com/goreleaser/nfpm/v2 v2.11.3
 	github.com/imdario/mergo v0.3.12
-	github.com/jarcoal/httpmock v1.0.8
+	github.com/jarcoal/httpmock v1.1.0
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/slack-go/slack v0.10.0
+	github.com/slack-go/slack v0.10.1
 	github.com/spf13/cobra v1.3.0
 	github.com/stretchr/testify v1.7.0
 	github.com/ulikunitz/xz v0.5.10
-	github.com/vartanbeno/go-reddit/v2 v2.0.1
 	github.com/xanzy/go-gitlab v0.52.2
 	gocloud.dev v0.24.0
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
@@ -98,7 +99,6 @@ require (
 	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/rpmpack v0.0.0-20211125064518-d0ed9b1b61b9 // indirect
-	github.com/google/uuid v1.3.0 // indirect
 	github.com/google/wire v0.5.0 // indirect
 	github.com/googleapis/gax-go/v2 v2.1.1 // indirect
 	github.com/goreleaser/chglog v0.1.2 // indirect

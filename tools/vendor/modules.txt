@@ -14,7 +14,7 @@ cloud.google.com/go/kms/apiv1
 # cloud.google.com/go/storage v1.18.2
 cloud.google.com/go/storage
 cloud.google.com/go/storage/internal/apiv2
-# code.gitea.io/sdk/gitea v0.15.0
+# code.gitea.io/sdk/gitea v0.15.1
 code.gitea.io/sdk/gitea
 # github.com/AlecAivazis/survey/v2 v2.3.2
 github.com/AlecAivazis/survey/v2
@@ -254,8 +254,10 @@ github.com/butuzov/ireturn/config
 github.com/butuzov/ireturn/types
 # github.com/caarlos0/ctrlc v1.0.0
 github.com/caarlos0/ctrlc
-# github.com/caarlos0/env/v6 v6.8.0
+# github.com/caarlos0/env/v6 v6.9.1
 github.com/caarlos0/env/v6
+# github.com/caarlos0/go-reddit/v3 v3.0.1
+github.com/caarlos0/go-reddit/v3/reddit
 # github.com/caarlos0/go-shellwords v1.0.12
 github.com/caarlos0/go-shellwords
 # github.com/cavaliergopher/cpio v1.0.1
@@ -297,7 +299,7 @@ github.com/davecgh/go-spew/spew
 github.com/denis-tingajkin/go-header
 # github.com/dghubble/go-twitter v0.0.0-20211115160449-93a8679adecb
 github.com/dghubble/go-twitter/twitter
-# github.com/dghubble/oauth1 v0.7.0
+# github.com/dghubble/oauth1 v0.7.1
 github.com/dghubble/oauth1
 # github.com/dghubble/sling v1.4.0
 github.com/dghubble/sling
@@ -550,8 +552,8 @@ github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
 github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
-# github.com/google/go-github/v39 v39.2.0
-github.com/google/go-github/v39/github
+# github.com/google/go-github/v41 v41.0.0
+github.com/google/go-github/v41/github
 # github.com/google/go-querystring v1.1.0
 github.com/google/go-querystring/query
 # github.com/google/rpmpack v0.0.0-20211125064518-d0ed9b1b61b9
@@ -572,7 +574,7 @@ github.com/gordonklaus/ineffassign/pkg/ineffassign
 github.com/goreleaser/chglog
 # github.com/goreleaser/fileglob v1.2.0
 github.com/goreleaser/fileglob
-# github.com/goreleaser/goreleaser v1.2.5
+# github.com/goreleaser/goreleaser v1.3.1
 ## explicit
 github.com/goreleaser/goreleaser
 github.com/goreleaser/goreleaser/cmd
@@ -580,6 +582,7 @@ github.com/goreleaser/goreleaser/internal/artifact
 github.com/goreleaser/goreleaser/internal/builders/buildtarget
 github.com/goreleaser/goreleaser/internal/builders/golang
 github.com/goreleaser/goreleaser/internal/client
+github.com/goreleaser/goreleaser/internal/commitauthor
 github.com/goreleaser/goreleaser/internal/deprecate
 github.com/goreleaser/goreleaser/internal/exec
 github.com/goreleaser/goreleaser/internal/extrafiles
@@ -618,6 +621,7 @@ github.com/goreleaser/goreleaser/internal/pipe/linkedin
 github.com/goreleaser/goreleaser/internal/pipe/mattermost
 github.com/goreleaser/goreleaser/internal/pipe/milestone
 github.com/goreleaser/goreleaser/internal/pipe/nfpm
+github.com/goreleaser/goreleaser/internal/pipe/prebuild
 github.com/goreleaser/goreleaser/internal/pipe/project
 github.com/goreleaser/goreleaser/internal/pipe/publish
 github.com/goreleaser/goreleaser/internal/pipe/reddit
@@ -636,6 +640,7 @@ github.com/goreleaser/goreleaser/internal/pipe/telegram
 github.com/goreleaser/goreleaser/internal/pipe/twitter
 github.com/goreleaser/goreleaser/internal/pipe/universalbinary
 github.com/goreleaser/goreleaser/internal/pipe/upload
+github.com/goreleaser/goreleaser/internal/pipe/webhook
 github.com/goreleaser/goreleaser/internal/pipeline
 github.com/goreleaser/goreleaser/internal/semerrgroup
 github.com/goreleaser/goreleaser/internal/shell
@@ -874,7 +879,7 @@ github.com/shopspring/decimal
 github.com/sirupsen/logrus
 # github.com/sivchari/tenv v1.4.7
 github.com/sivchari/tenv
-# github.com/slack-go/slack v0.10.0
+# github.com/slack-go/slack v0.10.1
 github.com/slack-go/slack
 github.com/slack-go/slack/internal/backoff
 github.com/slack-go/slack/internal/errorsx
@@ -950,8 +955,6 @@ github.com/ultraware/whitespace
 github.com/urfave/cli/v2
 # github.com/uudashr/gocognit v1.0.5
 github.com/uudashr/gocognit
-# github.com/vartanbeno/go-reddit/v2 v2.0.1
-github.com/vartanbeno/go-reddit/v2/reddit
 # github.com/xanzy/go-gitlab v0.52.2
 github.com/xanzy/go-gitlab
 # github.com/xanzy/ssh-agent v0.3.1
