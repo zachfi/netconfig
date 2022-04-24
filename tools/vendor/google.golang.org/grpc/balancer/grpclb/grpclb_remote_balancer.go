@@ -135,19 +135,11 @@ func (lb *lbBalancer) refreshSubConns(backendAddrs []resolver.Address, fallback 
 	}
 
 	if lb.usePickFirst {
-		var (
-			scKey resolver.Address
-			sc    balancer.SubConn
-		)
-		for scKey, sc = range lb.subConns {
+		var sc balancer.SubConn
+		for _, sc = range lb.subConns {
 			break
 		}
 		if sc != nil {
-			if len(backendAddrs) == 0 {
-				lb.cc.cc.RemoveSubConn(sc)
-				delete(lb.subConns, scKey)
-				return
-			}
 			lb.cc.cc.UpdateAddresses(sc, backendAddrs)
 			sc.Connect()
 			return
@@ -213,9 +205,6 @@ type remoteBalancerCCWrapper struct {
 	lb      *lbBalancer
 	backoff backoff.Strategy
 	done    chan struct{}
-
-	streamMu     sync.Mutex
-	streamCancel func()
 
 	// waitgroup to wait for all goroutines to exit.
 	wg sync.WaitGroup
@@ -330,8 +319,10 @@ func (ccw *remoteBalancerCCWrapper) sendLoadReport(s *balanceLoadClientStream, i
 	}
 }
 
-func (ccw *remoteBalancerCCWrapper) callRemoteBalancer(ctx context.Context) (backoff bool, _ error) {
+func (ccw *remoteBalancerCCWrapper) callRemoteBalancer() (backoff bool, _ error) {
 	lbClient := &loadBalancerClient{cc: ccw.cc}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 	stream, err := lbClient.BalanceLoad(ctx, grpc.WaitForReady(true))
 	if err != nil {
 		return true, fmt.Errorf("grpclb: failed to perform RPC to the remote balancer %v", err)
@@ -371,43 +362,11 @@ func (ccw *remoteBalancerCCWrapper) callRemoteBalancer(ctx context.Context) (bac
 	return false, ccw.readServerList(stream)
 }
 
-// cancelRemoteBalancerCall cancels the context used by the stream to the remote
-// balancer. watchRemoteBalancer() takes care of restarting this call after the
-// stream fails.
-func (ccw *remoteBalancerCCWrapper) cancelRemoteBalancerCall() {
-	ccw.streamMu.Lock()
-	if ccw.streamCancel != nil {
-		ccw.streamCancel()
-		ccw.streamCancel = nil
-	}
-	ccw.streamMu.Unlock()
-}
-
 func (ccw *remoteBalancerCCWrapper) watchRemoteBalancer() {
-	defer func() {
-		ccw.wg.Done()
-		ccw.streamMu.Lock()
-		if ccw.streamCancel != nil {
-			// This is to make sure that we don't leak the context when we are
-			// directly returning from inside of the below `for` loop.
-			ccw.streamCancel()
-			ccw.streamCancel = nil
-		}
-		ccw.streamMu.Unlock()
-	}()
-
+	defer ccw.wg.Done()
 	var retryCount int
-	var ctx context.Context
 	for {
-		ccw.streamMu.Lock()
-		if ccw.streamCancel != nil {
-			ccw.streamCancel()
-			ccw.streamCancel = nil
-		}
-		ctx, ccw.streamCancel = context.WithCancel(context.Background())
-		ccw.streamMu.Unlock()
-
-		doBackoff, err := ccw.callRemoteBalancer(ctx)
+		doBackoff, err := ccw.callRemoteBalancer()
 		select {
 		case <-ccw.done:
 			return

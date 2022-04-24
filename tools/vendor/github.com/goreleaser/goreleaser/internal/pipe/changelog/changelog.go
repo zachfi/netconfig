@@ -49,7 +49,7 @@ func (Pipe) Run(ctx *context.Context) error {
 	}
 	ctx.ReleaseNotes = notes
 
-	if ctx.ReleaseNotes != "" {
+	if ctx.ReleaseNotesFile != "" || ctx.ReleaseNotesTmpl != "" {
 		return nil
 	}
 
@@ -244,7 +244,7 @@ func getChangelog(ctx *context.Context, tag string) (string, error) {
 	prev := ctx.Git.PreviousTag
 	if prev == "" {
 		// get first commit
-		result, err := git.Clean(git.Run("rev-list", "--max-parents=0", "HEAD"))
+		result, err := git.Clean(git.Run(ctx, "rev-list", "--max-parents=0", "HEAD"))
 		if err != nil {
 			return "", err
 		}
@@ -283,7 +283,7 @@ func newGithubChangeloger(ctx *context.Context) (changeloger, error) {
 	if err != nil {
 		return nil, err
 	}
-	repo, err := git.ExtractRepoFromConfig()
+	repo, err := git.ExtractRepoFromConfig(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -301,7 +301,7 @@ func newSCMChangeloger(ctx *context.Context) (changeloger, error) {
 	if err != nil {
 		return nil, err
 	}
-	repo, err := git.ExtractRepoFromConfig()
+	repo, err := git.ExtractRepoFromConfig(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -316,17 +316,25 @@ func newSCMChangeloger(ctx *context.Context) (changeloger, error) {
 
 func loadContent(ctx *context.Context, fileName, tmplName string) (string, error) {
 	if tmplName != "" {
-		log.Debugf("loading template %s", tmplName)
+		log.Debugf("loading template %q", tmplName)
 		content, err := loadFromFile(tmplName)
 		if err != nil {
 			return "", err
 		}
-		return tmpl.New(ctx).Apply(content)
+		content, err = tmpl.New(ctx).Apply(content)
+		if strings.TrimSpace(content) == "" && err == nil {
+			log.Warnf("loaded %q, but it evaluates to an empty string", tmplName)
+		}
+		return content, err
 	}
 
 	if fileName != "" {
-		log.Debugf("loading file %s", fileName)
-		return loadFromFile(fileName)
+		log.Debugf("loading file %q", fileName)
+		content, err := loadFromFile(fileName)
+		if strings.TrimSpace(content) == "" && err == nil {
+			log.Warnf("loaded %q, but it is empty", fileName)
+		}
+		return content, err
 	}
 
 	return "", nil
@@ -340,14 +348,14 @@ type gitChangeloger struct{}
 
 var validSHA1 = regexp.MustCompile(`^[a-fA-F0-9]{40}$`)
 
-func (g gitChangeloger) Log(_ *context.Context, prev, current string) (string, error) {
+func (g gitChangeloger) Log(ctx *context.Context, prev, current string) (string, error) {
 	args := []string{"log", "--pretty=oneline", "--abbrev-commit", "--no-decorate", "--no-color"}
 	if validSHA1.MatchString(prev) {
 		args = append(args, prev, current)
 	} else {
 		args = append(args, fmt.Sprintf("tags/%s..tags/%s", prev, current))
 	}
-	return git.Run(args...)
+	return git.Run(ctx, args...)
 }
 
 type scmChangeloger struct {
