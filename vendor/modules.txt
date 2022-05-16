@@ -48,7 +48,7 @@ github.com/golang/protobuf/ptypes/timestamp
 github.com/golang/protobuf/ptypes/wrappers
 # github.com/gorilla/websocket v1.4.2
 github.com/gorilla/websocket
-# github.com/grafana/dskit v0.0.0-20220112093026-95274ccc858d
+# github.com/grafana/dskit v0.0.0-20220506090252-45db43a8cfe2
 ## explicit
 github.com/grafana/dskit/flagext
 github.com/grafana/dskit/services
